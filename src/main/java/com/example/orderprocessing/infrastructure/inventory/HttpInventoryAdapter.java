@@ -5,6 +5,7 @@ import com.example.orderprocessing.domain.model.OrderItem;
 import com.example.orderprocessing.domain.model.Sku;
 import com.example.orderprocessing.domain.port.InventoryPort;
 import com.example.orderprocessing.domain.port.ReservationResult;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Adapter that translates calls to {@link InventoryPort} into HTTP requests against
@@ -51,6 +51,18 @@ public class HttpInventoryAdapter implements InventoryPort {
     }
 
     /**
+     * Constructs the adapter with an externally supplied {@link RestClient}.
+     *
+     * <p>This constructor is intended for testing, where a pre-configured client
+     * (e.g., backed by {@code MockRestServiceServer}) is injected directly.
+     *
+     * @param restClient the REST client to use; must not be {@code null}
+     */
+    public HttpInventoryAdapter(RestClient restClient) {
+        this.restClient = restClient;
+    }
+
+    /**
      * Attempts to reserve stock for all items in the given order by calling
      * {@code POST /reservations} on the inventory provider.
      *
@@ -62,11 +74,16 @@ public class HttpInventoryAdapter implements InventoryPort {
      *   <li>Any other error or transport failure — {@link ReservationResult#failed(String)}</li>
      * </ul>
      *
+     * <p>Protected by the {@code "inventory"} Resilience4j circuit breaker. When the breaker
+     * is OPEN, {@code reserveFallback} is invoked and returns
+     * {@link ReservationResult#failed(String)} with reason {@code dependency_unavailable:inventory}.
+     *
      * @param id    the order identifier; must not be {@code null}
      * @param items the line items to reserve; must not be {@code null} or empty
      * @return a {@link ReservationResult} reflecting the provider's response; never {@code null}
      */
     @Override
+    @CircuitBreaker(name = "inventory", fallbackMethod = "reserveFallback")
     public ReservationResult reserve(OrderId id, List<OrderItem> items) {
         log.debug("Reserving inventory for order={}", id.value());
         try {
@@ -108,12 +125,16 @@ public class HttpInventoryAdapter implements InventoryPort {
      * propagate — the provider is expected to treat unknown reservations as a no-op
      * (idempotent release).
      *
+     * <p>Protected by the {@code "inventory"} Resilience4j circuit breaker. When the breaker
+     * is OPEN, {@code releaseFallback} is invoked, which logs a warning and returns silently.
+     *
      * @param id    the order identifier whose reservation should be released; must not be
      *              {@code null}
      * @param items the line items whose reserved quantities should be returned to stock;
      *              must not be {@code null}
      */
     @Override
+    @CircuitBreaker(name = "inventory", fallbackMethod = "releaseFallback")
     public void release(OrderId id, List<OrderItem> items) {
         log.debug("Releasing inventory reservation for order={}", id.value());
         try {
@@ -126,6 +147,41 @@ public class HttpInventoryAdapter implements InventoryPort {
             // Log and swallow — release is best-effort; provider treats unknown as no-op
             log.warn("Failed to release inventory reservation for order={}: {}", id.value(), ex.getMessage());
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Circuit-breaker fallback methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Fallback for {@link #reserve} when the {@code "inventory"} circuit breaker is OPEN.
+     *
+     * <p>Returns a {@link ReservationResult#failed(String)} with reason
+     * {@code dependency_unavailable:inventory} so the pipeline can transition the order
+     * to {@code FAILED} with a stable, machine-readable reason code.
+     *
+     * @param id    the order identifier (passed through from the primary method)
+     * @param items the line items (passed through from the primary method)
+     * @param ex    the exception that triggered the fallback (e.g., {@code CallNotPermittedException})
+     * @return a failed {@link ReservationResult} with reason {@code dependency_unavailable:inventory}
+     */
+    public ReservationResult reserveFallback(OrderId id, List<OrderItem> items, Throwable ex) {
+        log.warn("Circuit breaker OPEN for inventory reserve, order={}: {}", id.value(), ex.getMessage());
+        return ReservationResult.failed("dependency_unavailable:inventory");
+    }
+
+    /**
+     * Fallback for {@link #release} when the {@code "inventory"} circuit breaker is OPEN.
+     *
+     * <p>Logs a warning and returns silently — release is best-effort and the provider
+     * treats unknown reservations as a no-op.
+     *
+     * @param id    the order identifier (passed through from the primary method)
+     * @param items the line items (passed through from the primary method)
+     * @param ex    the exception that triggered the fallback
+     */
+    public void releaseFallback(OrderId id, List<OrderItem> items, Throwable ex) {
+        log.warn("Circuit breaker OPEN for inventory release, order={}: {}", id.value(), ex.getMessage());
     }
 
     // -------------------------------------------------------------------------

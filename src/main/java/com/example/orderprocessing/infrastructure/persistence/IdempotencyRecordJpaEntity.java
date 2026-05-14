@@ -28,9 +28,13 @@ public class IdempotencyRecordJpaEntity {
     /**
      * The client-supplied idempotency key string; used as the primary key so that
      * lookups by key are a direct primary-key lookup rather than a secondary index scan.
+     *
+     * <p>The column name is quoted ({@code "key"}) because {@code KEY} is a reserved
+     * word in H2 (used for slice tests) and must be escaped to avoid SQL syntax errors.
+     * PostgreSQL handles quoted identifiers transparently.
      */
     @Id
-    @Column(name = "key", nullable = false, updatable = false, length = 255)
+    @Column(name = "\"key\"", nullable = false, updatable = false, length = 255)
     private String key;
 
     /** The UUID of the order that was created for this idempotency key. */

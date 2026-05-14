@@ -4,6 +4,7 @@ import com.example.orderprocessing.domain.model.Money;
 import com.example.orderprocessing.domain.model.OrderId;
 import com.example.orderprocessing.domain.port.AuthorizationResult;
 import com.example.orderprocessing.domain.port.PaymentPort;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ import org.springframework.web.client.RestClientException;
  * translates HTTP responses back to {@link AuthorizationResult} variants.
  *
  * <p>Circuit-breaker protection (Resilience4j {@code "payment"} instance) is applied
- * in task 13.2 via {@code @CircuitBreaker}. When the breaker is OPEN, a
+ * via {@code @CircuitBreaker}. When the breaker is OPEN, a
  * {@code CallNotPermittedException} propagates to the pipeline, which transitions the
  * order to {@code FAILED} with reason {@code dependency_unavailable:payment}
  * (Requirements 5.4, 5.5, 12.1).
@@ -41,9 +42,20 @@ public class HttpPaymentAdapter implements PaymentPort {
      * @param config the payment client configuration; must not be {@code null}
      */
     public HttpPaymentAdapter(PaymentClientConfig config) {
-        this.restClient = RestClient.builder()
+        this(RestClient.builder()
                 .baseUrl(config.getBaseUrl())
-                .build();
+                .build());
+    }
+
+    /**
+     * Constructor accepting a pre-built {@link RestClient}.
+     * Intended for unit testing so tests can inject a mock or test-double client
+     * without starting a real HTTP server.
+     *
+     * @param restClient the REST client to use for outbound calls; must not be {@code null}
+     */
+    public HttpPaymentAdapter(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     /**
@@ -58,11 +70,15 @@ public class HttpPaymentAdapter implements PaymentPort {
      *   <li>Any other error or transport failure — {@link AuthorizationResult#failed(String)}</li>
      * </ul>
      *
+     * <p>Protected by the {@code "payment"} circuit breaker. When the breaker is OPEN,
+     * {@link #authorizeFallback(OrderId, Money, Throwable)} is invoked instead.
+     *
      * @param id         the order identifier; must not be {@code null}
      * @param grandTotal the total amount to authorize; must not be {@code null}
      * @return an {@link AuthorizationResult} reflecting the provider's response; never {@code null}
      */
     @Override
+    @CircuitBreaker(name = "payment", fallbackMethod = "authorizeFallback")
     public AuthorizationResult authorize(OrderId id, Money grandTotal) {
         log.debug("Authorizing payment for order={}, amount={} {}", id.value(),
                 grandTotal.amount(), grandTotal.currency());
@@ -111,6 +127,25 @@ public class HttpPaymentAdapter implements PaymentPort {
     }
 
     /**
+     * Fallback invoked by Resilience4j when the {@code "payment"} circuit breaker is OPEN
+     * or when {@link #authorize(OrderId, Money)} throws an unhandled exception that trips
+     * the breaker.
+     *
+     * <p>Returns a {@link AuthorizationResult#failed(String)} with reason
+     * {@code dependency_unavailable:payment} so the pipeline can transition the order to
+     * {@code FAILED} with a stable, machine-readable reason (Requirements 5.4, 5.5, 12.1).
+     *
+     * @param id         the order identifier
+     * @param grandTotal the amount that was to be authorized
+     * @param ex         the exception that triggered the fallback
+     * @return a failed {@link AuthorizationResult} indicating the payment dependency is unavailable
+     */
+    public AuthorizationResult authorizeFallback(OrderId id, Money grandTotal, Throwable ex) {
+        log.warn("Payment circuit breaker open for order={}: {}", id.value(), ex.getMessage());
+        return AuthorizationResult.failed("dependency_unavailable:payment");
+    }
+
+    /**
      * Voids a previously issued payment authorization by calling
      * {@code DELETE /authorizations/{orderId}} on the payment provider.
      *
@@ -118,10 +153,14 @@ public class HttpPaymentAdapter implements PaymentPort {
      * propagate — the provider is expected to treat unknown authorizations as a no-op
      * (idempotent void).
      *
+     * <p>Protected by the {@code "payment"} circuit breaker. When the breaker is OPEN,
+     * {@link #voidAuthorizationFallback(OrderId, Throwable)} is invoked instead.
+     *
      * @param id the order identifier whose authorization should be voided; must not be
      *           {@code null}
      */
     @Override
+    @CircuitBreaker(name = "payment", fallbackMethod = "voidAuthorizationFallback")
     public void voidAuthorization(OrderId id) {
         log.debug("Voiding payment authorization for order={}", id.value());
         try {
@@ -134,6 +173,21 @@ public class HttpPaymentAdapter implements PaymentPort {
             // Log and swallow — void is best-effort; provider treats unknown as no-op
             log.warn("Failed to void payment authorization for order={}: {}", id.value(), ex.getMessage());
         }
+    }
+
+    /**
+     * Fallback invoked by Resilience4j when the {@code "payment"} circuit breaker is OPEN
+     * during a void-authorization attempt.
+     *
+     * <p>Logs a warning and returns normally — void is best-effort and the pipeline does
+     * not depend on its outcome (Requirements 5.4, 12.1).
+     *
+     * @param id the order identifier whose authorization was to be voided
+     * @param ex the exception that triggered the fallback
+     */
+    public void voidAuthorizationFallback(OrderId id, Throwable ex) {
+        log.warn("Payment circuit breaker open; skipping void authorization for order={}: {}",
+                id.value(), ex.getMessage());
     }
 
     // -------------------------------------------------------------------------
