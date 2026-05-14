@@ -60,7 +60,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
   - [x] 3.2 Create `OrderBuilder` (Builder pattern) enforcing required fields and defaults
     - `build()` validates required fields and initial status = CREATED
     - _Requirements: 1.1, 13.1_
-  - [ ] 3.3 Write unit tests for `Order` immutability and `OrderBuilder` invariants
+  - [-] 3.3 Write unit tests for `Order` immutability and `OrderBuilder` invariants
     - Test `withStatus` returns a new instance and leaves the original unchanged
     - Test builder fails when required fields are missing
     - _Requirements: 1.1, 13.1_
@@ -74,11 +74,11 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - Reject any edge not in Req 6.1
     - Reject all outgoing transitions from terminal states
     - _Requirements: 6.1, 6.2, 6.4_
-  - [ ] 4.3 Write property test for lifecycle transitions
+  - [-] 4.3 Write property test for lifecycle transitions
     - **Property 1: Only graph-defined transitions are accepted**
     - Generate random (from, to) pairs over `OrderStatus`; assert `assertTransition` accepts iff edge is in the Req 6.1 graph
     - **Validates: Requirements 6.1, 6.2**
-  - [ ] 4.4 Write property test for terminal-state immutability
+  - [-] 4.4 Write property test for terminal-state immutability
     - **Property 2: No transition is permitted out of a terminal state**
     - For all terminal states (DELIVERED, CANCELLED, FAILED), `assertTransition(terminal, any)` throws
     - **Validates: Requirements 6.4**
@@ -94,10 +94,10 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - Runs every registered rule; first failure aggregates to a FAILED outcome with rule id and message persisted on the order
     - New rules are added by registering a new `ValidationRule` bean (OCP)
     - _Requirements: 2.2, 2.3, 2.4, 14.2_
-  - [ ] 5.4 Write unit tests for each validation rule
+  - [-] 5.4 Write unit tests for each validation rule
     - Cover passing and failing inputs, including boundary quantity (0, 1)
     - _Requirements: 1.2, 2.1, 2.3_
-  - [ ] 5.5 Write unit test for `ValidationChain` open/closed extension
+  - [-] 5.5 Write unit test for `ValidationChain` open/closed extension
     - Add a new rule at runtime and assert the chain invokes it without modifying the chain class
     - _Requirements: 2.4, 14.2_
 
@@ -113,7 +113,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - Builds an ordered `List<PricingStrategy>` from a profile name (e.g., `default`)
     - Throws on missing profile so `OrderService` can transition the order to FAILED with a pricing-error reason
     - _Requirements: 3.1, 3.6, 13.1_
-  - [ ] 6.4 Implement `PricingEngine.price(Order, profile)`
+  - [-] 6.4 Implement `PricingEngine.price(Order, profile)`
     - Applies the chain in order; computes subtotal, discountTotal, taxTotal, shippingTotal, grandTotal
     - Persists totals on the resulting `Order` and transitions VALIDATED → PRICED
     - _Requirements: 3.1, 3.3, 3.4_
@@ -141,7 +141,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
   - [x] 7.2 Define `NotificationChannel` enum and event payload
     - Payload includes Order_ID, new Order_Status, transition timestamp
     - _Requirements: 8.1_
-  - [ ] 7.3 Write unit tests for dispatcher fan-out and isolation
+  - [-] 7.3 Write unit tests for dispatcher fan-out and isolation
     - Stubbed listeners; one throws; assert remaining receive the event and the failure is recorded
     - _Requirements: 8.2, 8.3_
 
@@ -155,7 +155,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - _Requirements: 4.3, 5.3_
 
 - [ ] 9. Implement persistence adapter (JPA)
-  - [ ] 9.1 Create JPA entities
+  - [-] 9.1 Create JPA entities
     - `OrderJpaEntity` (with `@Version` for optimistic concurrency), `OrderItemJpaEntity`, `OrderStatusEventJpaEntity`, `IdempotencyRecordJpaEntity`
     - Unique constraint on `idempotency_key`
     - _Requirements: 1.4, 6.3, 11.3_
@@ -164,7 +164,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - `appendStatusEvent` persists the event in the same transaction as the status update
     - `search` paginates by status, customerId, time range
     - _Requirements: 1.4, 6.3, 8.4, 9.1_
-  - [ ] 9.3 Implement `JpaIdempotencyStore` adapting to `IdempotencyStore`
+  - [-] 9.3 Implement `JpaIdempotencyStore` adapting to `IdempotencyStore`
     - `findExisting` and `register` for deduplication of order creation
     - _Requirements: 1.3_
   - [ ] 9.4 Write `@DataJpaTest` slice tests for repository and idempotency store
@@ -189,7 +189,7 @@ Convert the feature design into a series of prompts for a code-generation LLM th
     - _Requirements: 10.1, 10.2_
 
 - [ ] 11. Implement order serialization with round-trip property
-  - [ ] 11.1 Create JSON serializer/deserializer for `Order` shared by API and cache
+  - [-] 11.1 Create JSON serializer/deserializer for `Order` shared by API and cache
     - Use Jackson with explicit `Order` ↔ `OrderResponse` mapping; reject unknown/missing required fields
     - _Requirements: 18.1, 18.2, 18.4_
   - [ ] 11.2 Write property test for serialization round-trip

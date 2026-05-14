@@ -27,6 +27,10 @@ Thumbs.db
 # Temporary scripts
 *.bat
 *.sh
+*.ps1
+
+# Null files (PowerShell artifact)
+$null
 
 # Environment / secrets
 .env
