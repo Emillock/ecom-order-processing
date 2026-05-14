@@ -1,0 +1,36 @@
+# Maven build output
+target/
+
+# jqwik property-based test database (regenerated on each run)
+.jqwik-database
+
+# Compiled class files accidentally placed outside target/
+**/*.class
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+*.eclipse
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary scripts
+*.bat
+*.sh
+
+# Environment / secrets
+.env
+*.env.local
+
+# Logs
+*.log
