@@ -38,3 +38,4 @@ $null
 
 # Logs
 *.log
+build_output*.txt
