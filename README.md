@@ -22,8 +22,8 @@ The service is engineered around three pillars:
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| JDK  | 21.0.11 | Set `JAVA_HOME=C:\Program Files\Java\jdk-21.0.11` |
-| Maven | 3.9.6 | Available at `C:\Users\User\AppData\Local\Programs\apache-maven-3.9.6\bin` |
+| JDK  | 21+ | See environment setup below |
+| Maven | 3.9+ | See environment setup below |
 | PostgreSQL | 15+ | Running on `localhost:5432`, database `orderprocessing` |
 | Redis | 7+ | Running on `localhost:6379` |
 
@@ -39,17 +39,41 @@ mvn clean verify
 The build fails if line coverage drops below **90 %** or branch coverage below **80 %**
 (enforced by `jacoco-maven-plugin`).
 
-### Environment setup (Windows)
+### Environment setup
 
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21.0.11"
-$env:PATH      = "$env:JAVA_HOME\bin;C:\Users\User\AppData\Local\Programs\apache-maven-3.9.6\bin;$env:PATH"
+#### macOS
+
+```bash
+# Install JDK 21 and Maven via Homebrew
+brew install openjdk@21 maven
+
+export JAVA_HOME=$(brew --prefix openjdk@21)
+export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
-A convenience script is provided at the repository root:
+Or use [SDKMAN](https://sdkman.io/):
+
+```bash
+sdk install java 21.0.3-tem
+sdk install maven 3.9.6
+```
+
+#### Linux (Ubuntu / Debian)
+
+```bash
+sudo apt update && sudo apt install openjdk-21-jdk maven
+
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+> Add the `export` lines to `~/.zshrc` (macOS) or `~/.bashrc` (Linux) to make them permanent.
+
+#### Windows (PowerShell)
 
 ```powershell
-.\set_java21.ps1
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
+$env:PATH      = "$env:JAVA_HOME\bin;C:\path\to\apache-maven\bin;$env:PATH"
 ```
 
 ---
