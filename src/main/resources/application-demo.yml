@@ -1,0 +1,45 @@
+spring:
+  # Use H2 in-memory database — no PostgreSQL needed for the demo
+  datasource:
+    url: jdbc:h2:mem:demo;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+
+  # Disable Redis auto-configuration — demo uses in-memory stubs
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  # Suppress the Spring Boot banner for cleaner demo output
+  main:
+    banner-mode: off
+
+# Disable Resilience4j circuit breakers in demo (no real HTTP calls)
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 100
+      payment:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 100
+      cache:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 100
+
+# Quiet down most Spring noise, show only demo output
+logging:
+  level:
+    root: WARN
+    com.example.orderprocessing.demo: INFO
+    com.example.orderprocessing.application.OrderService: INFO
+    com.example.orderprocessing.infrastructure.notification: INFO

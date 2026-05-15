@@ -64,6 +64,25 @@ The service starts on `http://localhost:8080` by default.
 
 ---
 
+## Demo
+
+Run a self-contained demo that exercises the main features without needing PostgreSQL, Redis, or any external services:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=demo
+```
+
+The demo walks through four scenarios and prints results to the console:
+
+1. **Happy path** — full lifecycle: CREATED → VALIDATED → PRICED → RESERVED → CONFIRMED, with pricing breakdown and audit log
+2. **Idempotency** — submitting the same order twice with the same `Idempotency-Key` returns the same Order_ID
+3. **Validation failure** — how a FAILED order looks with a failure reason
+4. **Cancellation** — cancel a CONFIRMED order; inventory release is triggered
+
+All infrastructure (database, cache, inventory, payment) is replaced with in-memory stubs for the demo profile.
+
+---
+
 ## Configuration
 
 All keys live in `src/main/resources/application.yml`. Override any key via environment
