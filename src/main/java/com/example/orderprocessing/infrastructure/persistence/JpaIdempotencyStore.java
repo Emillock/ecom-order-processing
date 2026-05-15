@@ -3,6 +3,7 @@ package com.example.orderprocessing.infrastructure.persistence;
 import com.example.orderprocessing.domain.model.IdempotencyKey;
 import com.example.orderprocessing.domain.model.OrderId;
 import com.example.orderprocessing.domain.port.IdempotencyStore;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
  * domain port contract and the JPA persistence model.
  */
 @Component
+@Profile("!demo")
 public class JpaIdempotencyStore implements IdempotencyStore {
 
     private final IdempotencyRecordJpaRepository repository;

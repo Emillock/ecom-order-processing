@@ -8,6 +8,7 @@ import com.example.orderprocessing.domain.port.ReservationResult;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,7 @@ import java.util.List;
  * (Requirements 4.4, 4.5, 12.1).
  */
 @Component
+@Profile("!demo")
 public class HttpInventoryAdapter implements InventoryPort {
 
     private static final Logger log = LoggerFactory.getLogger(HttpInventoryAdapter.class);

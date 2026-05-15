@@ -7,6 +7,7 @@ import com.example.orderprocessing.domain.port.PaymentPort;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import org.springframework.web.client.RestClientException;
  * (Requirements 5.4, 5.5, 12.1).
  */
 @Component
+@Profile("!demo")
 public class HttpPaymentAdapter implements PaymentPort {
 
     private static final Logger log = LoggerFactory.getLogger(HttpPaymentAdapter.class);

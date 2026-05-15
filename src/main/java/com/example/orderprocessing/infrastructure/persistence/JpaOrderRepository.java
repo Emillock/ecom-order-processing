@@ -14,6 +14,7 @@ import com.example.orderprocessing.domain.port.OrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,7 @@ import java.util.UUID;
  * </ul>
  */
 @Repository
+@Profile("!demo")
 public class JpaOrderRepository implements OrderRepository {
 
     private final OrderJpaEntityRepository orderRepo;

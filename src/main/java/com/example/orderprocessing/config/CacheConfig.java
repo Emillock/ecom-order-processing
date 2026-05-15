@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -19,8 +20,11 @@ import java.time.Duration;
  *
  * <p>The TTL is read from {@code app.cache.order.ttl} (default {@code 5m}) so that
  * operators can tune cache lifetime without recompiling (Requirement 10.2).
+ *
+ * <p>Excluded from the {@code demo} profile — the demo uses an in-memory stub instead.
  */
 @Configuration
+@Profile("!demo")
 public class CacheConfig {
 
     /**

@@ -9,6 +9,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,7 @@ import java.util.Optional;
  * back to the primary store (Requirements 10.3, 12.3, 14.2).
  */
 @Component
+@Profile("!demo")
 public class RedisOrderCache implements OrderCachePort {
 
     private static final Logger log = LoggerFactory.getLogger(RedisOrderCache.class);
