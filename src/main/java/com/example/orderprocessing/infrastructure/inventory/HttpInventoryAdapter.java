@@ -44,6 +44,7 @@ public class HttpInventoryAdapter implements InventoryPort {
      *
      * @param config the inventory client configuration; must not be {@code null}
      */
+    @org.springframework.beans.factory.annotation.Autowired
     public HttpInventoryAdapter(InventoryClientConfig config) {
         this.restClient = RestClient.builder()
                 .baseUrl(config.getBaseUrl())

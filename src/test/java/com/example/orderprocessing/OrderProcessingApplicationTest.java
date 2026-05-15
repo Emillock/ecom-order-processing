@@ -5,12 +5,14 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Smoke test that verifies the Spring application context loads successfully.
- * Redis auto-configurations are excluded so no real Redis instance is required;
- * H2 (test scope) satisfies JPA schema initialisation via the test profile.
+ * Redis auto-configurations are excluded and the connection factory is mocked
+ * so no real Redis instance is required; H2 satisfies JPA via the test profile.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @EnableAutoConfiguration(exclude = {
@@ -20,9 +22,12 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class OrderProcessingApplicationTest {
 
+    /** Mock Redis connection factory so CacheConfig can wire without a real Redis. */
+    @MockBean
+    RedisConnectionFactory redisConnectionFactory;
+
     /**
      * Asserts that the Spring application context starts without errors.
-     * This is the minimum bar for the initial build skeleton (task 1.4).
      */
     @Test
     void contextLoads() {

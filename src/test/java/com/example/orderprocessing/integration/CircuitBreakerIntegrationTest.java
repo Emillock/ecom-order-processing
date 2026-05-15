@@ -288,19 +288,19 @@ class CircuitBreakerIntegrationTest {
     @Test
     @DisplayName("circuit breaker metrics track call counts correctly")
     void circuitBreaker_metricsTrackCallCounts() {
-        // Record 5 successes and 5 failures (10 total — meets minimum)
-        for (int i = 0; i < 5; i++) {
+        // Record 6 successes and 4 failures (10 total — meets minimum)
+        // 4/10 = 40% < 50% threshold → breaker stays CLOSED
+        for (int i = 0; i < 6; i++) {
             simulateSuccess();
         }
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             simulateFailure();
         }
 
         CircuitBreaker.Metrics metrics = inventoryBreaker.getMetrics();
-        assertThat(metrics.getNumberOfSuccessfulCalls()).isEqualTo(5);
-        assertThat(metrics.getNumberOfFailedCalls()).isEqualTo(5);
-        // 5/10 = 50% — exactly at threshold, breaker should still be CLOSED
-        // (threshold is "greater than", not "greater than or equal to" by default)
+        assertThat(metrics.getNumberOfSuccessfulCalls()).isEqualTo(6);
+        assertThat(metrics.getNumberOfFailedCalls()).isEqualTo(4);
+        // 4/10 = 40% < 50% threshold — breaker should remain CLOSED
         assertThat(inventoryBreaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
     }
 

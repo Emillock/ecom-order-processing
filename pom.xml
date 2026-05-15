@@ -254,6 +254,8 @@
                                 <exclude>com/example/orderprocessing/config/**</exclude>
                                 <exclude>com/example/orderprocessing/infrastructure/inventory/InventoryClientConfig.class</exclude>
                                 <exclude>com/example/orderprocessing/infrastructure/payment/PaymentClientConfig.class</exclude>
+                                <exclude>com/example/orderprocessing/infrastructure/inventory/InventoryConfig.class</exclude>
+                                <exclude>com/example/orderprocessing/infrastructure/payment/PaymentConfig.class</exclude>
                             </excludes>
                         </configuration>
                     </execution>

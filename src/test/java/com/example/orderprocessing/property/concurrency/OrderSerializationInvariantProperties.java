@@ -89,6 +89,11 @@ class OrderSerializationInvariantProperties {
         public Page<Order> search(OrderQuery query, Pageable pageable) {
             return Page.empty();
         }
+
+        @Override
+        public java.util.List<OrderStatusEvent> findEventsByOrderId(OrderId id) {
+            return java.util.List.of();
+        }
     }
 
     // -------------------------------------------------------------------------

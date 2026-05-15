@@ -6,6 +6,7 @@ import com.example.orderprocessing.domain.model.OrderStatusEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -61,4 +62,13 @@ public interface OrderRepository {
      * @return a page of matching orders; never {@code null}
      */
     Page<Order> search(OrderQuery query, Pageable pageable);
+
+    /**
+     * Returns all status-transition events recorded for the given order, in ascending
+     * chronological order (Requirement 6.3).
+     *
+     * @param id the order identifier; must not be {@code null}
+     * @return an ordered list of {@link OrderStatusEvent} records; never {@code null}
+     */
+    List<OrderStatusEvent> findEventsByOrderId(OrderId id);
 }

@@ -136,6 +136,26 @@ public class JpaOrderRepository implements OrderRepository {
     }
 
     /**
+     * Returns all status-transition events for the given order in ascending chronological order.
+     *
+     * @param id the order identifier; must not be {@code null}
+     * @return an ordered list of {@link OrderStatusEvent} records; never {@code null}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderStatusEvent> findEventsByOrderId(OrderId id) {
+        return eventRepo.findByOrderIdOrderByAtAsc(id.value()).stream()
+                .map(e -> new OrderStatusEvent(
+                        new OrderId(e.getOrderId()),
+                        e.getFromStatus() != null ? OrderStatus.valueOf(e.getFromStatus()) : null,
+                        OrderStatus.valueOf(e.getToStatus()),
+                        e.getAt(),
+                        e.getActor(),
+                        e.getReason()))
+                .toList();
+    }
+
+    /**
      * Returns a paginated, filtered view of orders matching the supplied query criteria.
      *
      * <p>Null fields in {@code query} are treated as "match any". The {@code customerId}

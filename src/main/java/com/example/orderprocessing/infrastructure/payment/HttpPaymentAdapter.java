@@ -41,6 +41,7 @@ public class HttpPaymentAdapter implements PaymentPort {
      *
      * @param config the payment client configuration; must not be {@code null}
      */
+    @org.springframework.beans.factory.annotation.Autowired
     public HttpPaymentAdapter(PaymentClientConfig config) {
         this(RestClient.builder()
                 .baseUrl(config.getBaseUrl())

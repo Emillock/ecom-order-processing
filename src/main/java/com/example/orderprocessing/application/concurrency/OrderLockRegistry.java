@@ -1,6 +1,7 @@
 package com.example.orderprocessing.application.concurrency;
 
 import com.example.orderprocessing.domain.model.OrderId;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,6 +25,7 @@ import java.util.function.Supplier;
  * cache-aside read path and optimistic locking ({@code @Version}) at the
  * persistence layer as a second-line defence.
  */
+@Component
 public final class OrderLockRegistry {
 
     /** Stripe map: one {@link ReentrantLock} per live {@link OrderId}. */

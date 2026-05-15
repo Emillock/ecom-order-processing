@@ -19,6 +19,19 @@ spring:
       host: localhost
       port: 6370
 
+  # Exclude Redis and cache auto-configurations for the smoke test context
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# External provider URLs (required by HttpInventoryAdapter and HttpPaymentAdapter beans)
+app:
+  inventory:
+    base-url: http://localhost:9001
+  payment:
+    base-url: http://localhost:9002
+
 # Disable circuit breakers in unit/slice tests to avoid state bleed
 resilience4j:
   circuitbreaker:

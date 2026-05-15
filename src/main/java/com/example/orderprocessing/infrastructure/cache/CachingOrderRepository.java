@@ -140,4 +140,15 @@ public class CachingOrderRepository implements OrderRepository {
     public Page<Order> search(OrderQuery query, Pageable pageable) {
         return delegate.search(query, pageable);
     }
+
+    /**
+     * Delegates the event-log retrieval directly to the underlying repository.
+     *
+     * @param id the order identifier; must not be {@code null}
+     * @return an ordered list of {@link OrderStatusEvent} records; never {@code null}
+     */
+    @Override
+    public java.util.List<OrderStatusEvent> findEventsByOrderId(OrderId id) {
+        return delegate.findEventsByOrderId(id);
+    }
 }
